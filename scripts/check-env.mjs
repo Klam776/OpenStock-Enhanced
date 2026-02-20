@@ -17,7 +17,7 @@ const requiredVars = {
     'BETTER_AUTH_URL': 'Auth URL (e.g., http://localhost:3000)',
     
     // Finnhub
-    'NEXT_PUBLIC_FINNHUB_API_KEY': 'Finnhub API key (public)',
+    'FINNHUB_API_KEY': 'Finnhub API key (server-side only)',
     'FINNHUB_BASE_URL': 'Finnhub API base URL',
     
     // Inngest
@@ -30,7 +30,6 @@ const requiredVars = {
 };
 
 const optionalVars = {
-    'FINNHUB_API_KEY': 'Legacy Finnhub key (deprecated, use NEXT_PUBLIC_FINNHUB_API_KEY)',
 };
 
 console.log('🔍 Checking Environment Variables...\n');

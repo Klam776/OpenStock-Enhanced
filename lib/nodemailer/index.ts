@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import {WELCOME_EMAIL_TEMPLATE, NEWS_SUMMARY_EMAIL_TEMPLATE} from "@/lib/nodemailer/templates";
+import {WELCOME_EMAIL_TEMPLATE, NEWS_SUMMARY_EMAIL_TEMPLATE, STOCK_ALERT_UPPER_EMAIL_TEMPLATE, STOCK_ALERT_LOWER_EMAIL_TEMPLATE} from "@/lib/nodemailer/templates";
 
 // Verify transporter configuration
 if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
@@ -79,6 +79,55 @@ export const sendNewsSummaryEmail = async (
         return info;
     } catch (error) {
         console.error('❌ Failed to send news summary email:', error);
+        throw error;
+    }
+};
+
+export const sendAlertEmail = async ({
+    email,
+    symbol,
+    condition,
+    targetPrice,
+    currentPrice,
+    triggeredAt,
+}: {
+    email: string;
+    symbol: string;
+    condition: 'ABOVE' | 'BELOW';
+    targetPrice: number;
+    currentPrice: number;
+    triggeredAt: string;
+}) => {
+    try {
+        if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
+            throw new Error('Email credentials not configured');
+        }
+
+        const template = condition === 'ABOVE' ? STOCK_ALERT_UPPER_EMAIL_TEMPLATE : STOCK_ALERT_LOWER_EMAIL_TEMPLATE;
+        const priceColor = condition === 'ABOVE' ? '#10b981' : '#ef4444';
+        const htmlTemplate = template
+            .replace(/\{\{symbol\}\}/g, symbol)
+            .replace(/\{\{company\}\}/g, symbol)
+            .replace(/\{\{currentPrice\}\}/g, `$${currentPrice.toFixed(2)}`)
+            .replace(/\{\{targetPrice\}\}/g, `$${targetPrice.toFixed(2)}`)
+            .replace(/\{\{timestamp\}\}/g, triggeredAt)
+            .replace(/\{\{priceColor\}\}/g, priceColor);
+
+        const subject = condition === 'ABOVE'
+            ? `📈 Price Alert: ${symbol} exceeded $${targetPrice}`
+            : `📉 Price Alert: ${symbol} dropped below $${targetPrice}`;
+
+        const info = await transporter.sendMail({
+            from: `"Openstock" <${process.env.NODEMAILER_EMAIL}>`,
+            to: email,
+            subject,
+            text: `${symbol} price alert triggered. Current price: $${currentPrice.toFixed(2)}`,
+            html: htmlTemplate,
+        });
+        console.log('✅ Alert email sent successfully:', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('❌ Failed to send alert email:', error);
         throw error;
     }
 };

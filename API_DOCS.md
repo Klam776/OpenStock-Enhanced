@@ -80,7 +80,7 @@ Our background jobs are defined in `lib/inngest/functions.ts`.
 
 *   **Base URL:** `https://finnhub.io/api/v1`
 *   **Key Features:** Real-time quotes, technical indicators, market news.
-*   **Auth:** `NEXT_PUBLIC_FINNHUB_API_KEY`
+*   **Auth:** `FINNHUB_API_KEY`
 
 </details>
 

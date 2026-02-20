@@ -1,6 +1,6 @@
 import { inngest } from "@/lib/inngest/client";
 import { NEWS_SUMMARY_EMAIL_PROMPT, PERSONALIZED_WELCOME_EMAIL_PROMPT } from "@/lib/inngest/prompts";
-import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
+import { sendNewsSummaryEmail, sendWelcomeEmail, sendAlertEmail } from "@/lib/nodemailer";
 import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
@@ -344,15 +344,35 @@ export const checkStockAlerts = inngest.createFunction(
             await step.run('process-triggered-alerts', async () => {
                 const { connectToDatabase } = await import("@/database/mongoose");
                 const { Alert } = await import("@/database/models/alert.model");
-                // In a real app we would import 'kit' here and use kit.sendBroadcast or similar
-                // For now, we just log it as the critical logic is the detection
-                await connectToDatabase();
+
+                const mongoose = await connectToDatabase();
+                const db = mongoose.connection.db;
 
                 for (const { alert, currentPrice } of triggeredAlerts) {
                     console.log(`🚀 ALERT FIRED: ${alert.symbol} is ${currentPrice} (${alert.condition} ${alert.targetPrice})`);
 
                     // Mark triggered
                     await Alert.findByIdAndUpdate(alert._id, { triggered: true, active: false });
+
+                    // Send email notification
+                    try {
+                        const user = db ? await db.collection('user').findOne(
+                            { id: alert.userId },
+                            { projection: { email: 1 } }
+                        ) : null;
+                        if (user?.email) {
+                            await sendAlertEmail({
+                                email: user.email,
+                                symbol: alert.symbol,
+                                condition: alert.condition,
+                                targetPrice: alert.targetPrice,
+                                currentPrice,
+                                triggeredAt: new Date().toLocaleString(),
+                            });
+                        }
+                    } catch (emailErr) {
+                        console.error(`Failed to send alert email for ${alert.symbol}:`, emailErr);
+                    }
                 }
             });
         }

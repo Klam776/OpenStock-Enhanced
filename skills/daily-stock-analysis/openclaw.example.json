@@ -1,0 +1,46 @@
+{
+  "skills": {
+    "entries": {
+      "daily-stock-analysis": {
+        "enabled": true,
+        "env": {
+          "FINNHUB_API_KEY": "YOUR_FINNHUB_API_KEY_HERE",
+          "GEMINI_API_KEY": "YOUR_GEMINI_API_KEY_HERE",
+          "DEEPSEEK_API_KEY": "YOUR_DEEPSEEK_API_KEY_HERE (optional)",
+          "OPENAI_API_KEY": "YOUR_OPENAI_API_KEY_HERE (optional)",
+          "TELEGRAM_BOT_TOKEN": "YOUR_TELEGRAM_BOT_TOKEN (optional)",
+          "TELEGRAM_CHAT_ID": "YOUR_TELEGRAM_CHAT_ID (optional)",
+          "PUSHPLUS_TOKEN": "YOUR_PUSHPLUS_TOKEN (optional, 微信推送)",
+          "SERVERCHAN_KEY": "YOUR_SERVERCHAN_KEY (optional, Server酱)",
+          "FEISHU_WEBHOOK_URL": "YOUR_FEISHU_WEBHOOK_URL (optional, 飞书)",
+          "DINGTALK_WEBHOOK_URL": "YOUR_DINGTALK_WEBHOOK_URL (optional, 钉钉)",
+          "DISCORD_WEBHOOK_URL": "YOUR_DISCORD_WEBHOOK_URL (optional, Discord)"
+        },
+        "config": {
+          "markets": ["cn", "us"],
+          "watchlist_cn": ["600519", "000858", "601318", "600036", "000333", "002594"],
+          "watchlist_us": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META"],
+          "watchlist_hk": ["00700", "09988", "03690"],
+          "notification_channels": ["telegram", "wechat"],
+          "ai_provider": "gemini",
+          "report_language": "zh-CN",
+          "schedule": "30 8 * * 1-5",
+          "timezone": "Asia/Shanghai",
+          "rss_feeds": {
+            "international": [
+              "https://feeds.marketwatch.com/marketwatch/topstories/",
+              "https://www.cnbc.com/id/100727362/device/rss/rss.html",
+              "https://seekingalpha.com/feed.xml",
+              "https://feeds.reuters.com/reuters/businessNews"
+            ],
+            "china": [
+              "https://rsshub.app/eastmoney/news",
+              "https://rsshub.app/cls/telegraph",
+              "https://rsshub.app/xueqiu/today"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
