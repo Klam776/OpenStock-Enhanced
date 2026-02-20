@@ -216,6 +216,95 @@ async function fetchSinaQuote(symbols) {
   return results;
 }
 
+// ============== 新浪财经 API（港股实时）==============
+
+async function fetchSinaHKQuote(symbols) {
+  const results = [];
+  for (const item of symbols) {
+    try {
+      const code = item.type === 'index'
+        ? `rt_hk${item.symbol}`
+        : `rt_hk${item.symbol.padStart(5, '0')}`;
+      const url = `https://hq.sinajs.cn/list=${code}`;
+      const res = await httpGet(url, { Referer: 'https://finance.sina.com.cn' }, true);
+      const decoded = decodeGBK(res.data);
+      const match = decoded.match(/"(.+)"/);
+      if (match) {
+        const parts = match[1].split(',');
+        if (parts.length >= 14) {
+          const current = parseFloat(parts[6]);
+          const prev = parseFloat(parts[3]);
+          if (current && prev) {
+            results.push({
+              symbol: item.symbol,
+              name: parts[1] || item.name,
+              current,
+              open: parseFloat(parts[2]),
+              high: parseFloat(parts[4]),
+              low: parseFloat(parts[5]),
+              previousClose: prev,
+              change: parseFloat((current - prev).toFixed(3)),
+              changePercent: parseFloat((((current - prev) / prev) * 100).toFixed(2)),
+              volume: parts[12],
+              amount: parts[11],
+              type: item.type,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      results.push({ symbol: item.symbol, name: item.name, error: err.message });
+    }
+  }
+  return results;
+}
+
+// ============== 东方财富 API（A股备用）==============
+
+async function fetchEastMoneyIndices() {
+  try {
+    const url = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&fields=f2,f3,f4,f12,f14&secids=1.000001,0.399001,0.399006,1.000688';
+    const res = await httpGet(url, { Referer: 'https://www.eastmoney.com' });
+    const data = JSON.parse(res.data);
+    return (data.data?.diff ?? []).map(d => ({
+      symbol: d.f12,
+      name: d.f14,
+      current: d.f2,
+      change: d.f4,
+      changePercent: d.f3,
+      type: 'index',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function fetchEastMoneyQuote(symbol) {
+  try {
+    const secid = symbol.startsWith('6') || symbol === '000001' ? `1.${symbol}` : `0.${symbol}`;
+    const url = `https://push2delay.eastmoney.com/api/qt/stock/get?secid=${secid}&fields=f43,f44,f45,f46,f47,f48,f57,f58,f60,f169,f170`;
+    const res = await httpGet(url, { Referer: 'https://www.eastmoney.com' });
+    const d = JSON.parse(res.data).data;
+    if (!d || !d.f43) return null;
+    return {
+      symbol: d.f57,
+      name: d.f58,
+      current: d.f43 / 100,
+      open: d.f46 / 100,
+      high: d.f44 / 100,
+      low: d.f45 / 100,
+      previousClose: d.f60 / 100,
+      change: d.f169 / 100,
+      changePercent: d.f170 / 100,
+      volume: d.f47,
+      amount: d.f48,
+      type: 'stock',
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ============== RSS 新闻获取 ==============
 
 async function fetchRSSNews(feedUrl, source) {
@@ -426,6 +515,13 @@ async function main() {
           type: 'stock',
         }));
       }).catch(err => { console.error('美股数据获取失败:', err.message); marketData.us = []; })
+    );
+  }
+
+  if (market === 'all' || market === 'hk') {
+    tasks.push(
+      fetchSinaHKQuote(HK_WATCHLIST).then(data => { marketData.hk = data; })
+        .catch(err => { console.error('港股数据获取失败:', err.message); marketData.hk = []; })
     );
   }
 
