@@ -28,7 +28,14 @@ interface EMIndexItem {
 }
 
 function getSecId(symbol: string): string {
-  if (symbol.startsWith('6') || symbol.startsWith('000001')) return `1.${symbol}`;
+  // EastMoney market id: 1 = Shanghai (60/68 stocks, 90 B-shares, 5x funds,
+  // and the 000001 SSE index), 0 = Shenzhen / Beijing.
+  if (
+    symbol.startsWith('6') ||
+    symbol.startsWith('9') ||
+    symbol.startsWith('5') ||
+    symbol === '000001'
+  ) return `1.${symbol}`;
   return `0.${symbol}`;
 }
 
