@@ -78,7 +78,7 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
         const range = getDateRange(5);
         const token = FINNHUB_API_KEY;
         if (!token) {
-            throw new Error('FINNHUB API key is not configured');
+            return [];
         }
         const cleanSymbols = (symbols || [])
             .map((s) => s?.trim().toUpperCase())
@@ -145,7 +145,7 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
         return formatted;
     } catch (err) {
         console.error('getNews error:', err);
-        throw new Error('Failed to fetch news');
+        return [];
     }
 }
 
