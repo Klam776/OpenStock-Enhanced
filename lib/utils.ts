@@ -173,5 +173,18 @@ export function formatSymbolForTradingView(symbol: string): string {
         return `HKEX:${upperSymbol.slice(0, -3)}`;
     }
     
+    // Bare 6-digit A-share codes (e.g. watchlist entries stored without a suffix):
+    // 6xxxxx/9xxxxx are Shanghai, 0xxxxx/3xxxxx are Shenzhen. Without the exchange
+    // prefix TradingView may resolve the code to an index instead of the stock
+    // (e.g. 000949 is both Shenzhen-listed Xinxian Huaxian and an SSE index code).
+    if (/^\d{6}$/.test(upperSymbol)) {
+        if (upperSymbol.startsWith('6') || upperSymbol.startsWith('9')) {
+            return `SSE:${upperSymbol}`;
+        }
+        if (upperSymbol.startsWith('0') || upperSymbol.startsWith('3')) {
+            return `SZSE:${upperSymbol}`;
+        }
+    }
+
     return upperSymbol;
 }
