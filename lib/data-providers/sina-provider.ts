@@ -4,8 +4,17 @@ import type { DataProvider, StockQuote, MarketIndex } from './types';
 
 function getSinaPrefix(symbol: string): string {
   const s = symbol.toLowerCase();
-  if (s.startsWith('6') || s.startsWith('000') || s.startsWith('880')) return `sh${s}`;
-  if (s.startsWith('0') || s.startsWith('3') || s.startsWith('399')) return `sz${s}`;
+  // Already prefixed (sh603382 / sz000949 / bj830799) — pass through.
+  if (s.startsWith('sh') || s.startsWith('sz') || s.startsWith('bj')) return s;
+  // Shanghai: 60xxxx / 68xxxx (STAR) stocks, 90xxxx B-shares, 5xxxxx funds.
+  // (Indices such as sh000001 are handled separately in CN_INDICES;
+  //  as a stock code, 000xxx is Shenzhen — the old '000' -> sh rule broke
+  //  Shenzhen main-board stocks like 000949.)
+  if (s.startsWith('6') || s.startsWith('9') || s.startsWith('5')) return `sh${s}`;
+  // Shenzhen: 00xxxx / 30xxxx (ChiNext) stocks, 20xxxx B-shares, 1xxxxx funds, 399xxx indices.
+  if (s.startsWith('0') || s.startsWith('3') || s.startsWith('2') || s.startsWith('1')) return `sz${s}`;
+  // Beijing Stock Exchange: 4xxxxx / 8xxxxx.
+  if (s.startsWith('4') || s.startsWith('8')) return `bj${s}`;
   return `sh${s}`;
 }
 
