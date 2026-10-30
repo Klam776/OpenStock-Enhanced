@@ -2,6 +2,7 @@ export const NAV_ITEMS = [
     { href: '/', label: 'Dashboard' },
     { href: '/search', label: 'Search' },
     { href: '/watchlist', label: 'Watchlist' },
+    { href: '/cn-market', label: 'A股市场' },
     { href: '/api-docs', label: 'API Docs' },
 ];
 
